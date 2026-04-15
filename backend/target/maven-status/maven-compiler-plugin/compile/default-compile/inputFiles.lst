@@ -1,6 +1,10 @@
 /Users/himanipraneshrao/Documents/New project/traffic-system/backend/src/main/java/com/traffic/model/TrafficDensity.java
 /Users/himanipraneshrao/Documents/New project/traffic-system/backend/src/main/java/com/traffic/model/DiagnosticsResult.java
 /Users/himanipraneshrao/Documents/New project/traffic-system/backend/src/main/java/com/traffic/model/ManualSignalRequest.java
+/Users/himanipraneshrao/Documents/New project/traffic-system/backend/src/main/java/com/traffic/command/StartCycleCommand.java
+/Users/himanipraneshrao/Documents/New project/traffic-system/backend/src/main/java/com/traffic/command/PrioritySignalCommand.java
+/Users/himanipraneshrao/Documents/New project/traffic-system/backend/src/main/java/com/traffic/command/ManualSignalCommand.java
+/Users/himanipraneshrao/Documents/New project/traffic-system/backend/src/main/java/com/traffic/command/StopCycleCommand.java
 /Users/himanipraneshrao/Documents/New project/traffic-system/backend/src/main/java/com/traffic/service/TrafficControllerService.java
 /Users/himanipraneshrao/Documents/New project/traffic-system/backend/src/main/java/com/traffic/model/Intersection.java
 /Users/himanipraneshrao/Documents/New project/traffic-system/backend/src/main/java/com/traffic/model/TimerConfig.java
@@ -26,5 +30,6 @@
 /Users/himanipraneshrao/Documents/New project/traffic-system/backend/src/main/java/com/traffic/service/DiagnosticsService.java
 /Users/himanipraneshrao/Documents/New project/traffic-system/backend/src/main/java/com/traffic/controller/MaintenanceController.java
 /Users/himanipraneshrao/Documents/New project/traffic-system/backend/src/main/java/com/traffic/model/PriorityRequest.java
+/Users/himanipraneshrao/Documents/New project/traffic-system/backend/src/main/java/com/traffic/command/TrafficCommand.java
 /Users/himanipraneshrao/Documents/New project/traffic-system/backend/src/main/java/com/traffic/strategy/AutomaticSignalPlanStrategy.java
 /Users/himanipraneshrao/Documents/New project/traffic-system/backend/src/main/java/com/traffic/config/WebSocketConfig.java

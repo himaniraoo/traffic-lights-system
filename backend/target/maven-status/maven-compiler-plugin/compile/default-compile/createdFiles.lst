@@ -1,4 +1,5 @@
 com/traffic/strategy/ManualSignalPlanStrategy.class
+com/traffic/command/StartCycleCommand.class
 com/traffic/model/Direction.class
 com/traffic/service/SystemManagerService$ManagerState.class
 com/traffic/model/DiagnosticsResult.class
@@ -6,6 +7,7 @@ com/traffic/model/TrafficLight.class
 com/traffic/model/ManualSignalRequest.class
 com/traffic/config/CorsConfig.class
 com/traffic/model/TrafficLight$TrafficLightDTO.class
+com/traffic/command/ManualSignalCommand.class
 com/traffic/factory/JunctionNetworkFactory.class
 com/traffic/model/JunctionNetwork.class
 com/traffic/controller/TrafficController.class
@@ -13,9 +15,11 @@ com/traffic/model/SignalMode.class
 com/traffic/model/SignalState.class
 com/traffic/TrafficSignalApplication.class
 com/traffic/model/TimerConfig$1.class
+com/traffic/command/StopCycleCommand.class
 com/traffic/service/SignalControllerService.class
 com/traffic/model/PriorityRequest.class
 com/traffic/model/PriorityEventType.class
+com/traffic/command/PrioritySignalCommand.class
 com/traffic/model/TimingProfile.class
 com/traffic/service/TrafficControllerService$1.class
 com/traffic/strategy/SignalPlanStrategy.class
@@ -33,5 +37,6 @@ com/traffic/model/TrafficDensity.class
 com/traffic/model/JunctionType.class
 com/traffic/service/DiagnosticsService.class
 com/traffic/model/TrafficDensityRequest.class
+com/traffic/command/TrafficCommand.class
 com/traffic/strategy/PrioritySignalPlanStrategy.class
 com/traffic/strategy/AutomaticSignalPlanStrategy.class

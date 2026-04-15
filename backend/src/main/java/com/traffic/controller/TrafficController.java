@@ -1,5 +1,9 @@
 package com.traffic.controller;
 
+import com.traffic.command.ManualSignalCommand;
+import com.traffic.command.PrioritySignalCommand;
+import com.traffic.command.StartCycleCommand;
+import com.traffic.command.StopCycleCommand;
 import com.traffic.model.*;
 import com.traffic.service.SystemManagerService;
 import com.traffic.service.TrafficControllerService;
@@ -30,7 +34,7 @@ public class TrafficController {
 
     @PostMapping("/start")
     public ResponseEntity<Map<String, String>> startCycle() {
-        String message = trafficControllerService.startCycle();
+        String message = new StartCycleCommand(trafficControllerService).execute();
         // notify SystemManager so it transitions INITIALIZED → RUNNING
         if (trafficControllerService.isRunning()) {
             systemManagerService.notifyCycleStarted();
@@ -40,7 +44,7 @@ public class TrafficController {
 
     @PostMapping("/stop")
     public ResponseEntity<Map<String, String>> stopCycle() {
-        String message = trafficControllerService.stopCycle();
+        String message = new StopCycleCommand(trafficControllerService).execute();
         return ResponseEntity.ok(Map.of("message", message));
     }
 
@@ -113,13 +117,13 @@ public class TrafficController {
 
     @PostMapping("/manual")
     public ResponseEntity<Map<String, String>> applyManualSignal(@RequestBody ManualSignalRequest request) {
-        String message = trafficControllerService.applyManualSignal(request);
+        String message = new ManualSignalCommand(trafficControllerService, request).execute();
         return ResponseEntity.ok(Map.of("message", message));
     }
 
     @PostMapping("/priority")
     public ResponseEntity<Map<String, String>> applyPriority(@RequestBody PriorityRequest request) {
-        String message = trafficControllerService.applyPriority(request);
+        String message = new PrioritySignalCommand(trafficControllerService, request).execute();
         return ResponseEntity.ok(Map.of("message", message));
     }
 }

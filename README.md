@@ -36,14 +36,15 @@ traffic-system/
 │       │   └── DiagnosticsResult.java
 │       ├── factory/
 │       │   └── JunctionNetworkFactory.java    (creates South End-style network)
-│       ├── strategy/
-│       │   ├── SignalPlanStrategy.java
-│       │   ├── AutomaticSignalPlanStrategy.java
-│       │   ├── ManualSignalPlanStrategy.java
-│       │   └── PrioritySignalPlanStrategy.java
+│       ├── command/
+│       │   ├── TrafficCommand.java
+│       │   ├── StartCycleCommand.java
+│       │   ├── StopCycleCommand.java
+│       │   ├── ManualSignalCommand.java
+│       │   └── PrioritySignalCommand.java
 │       ├── service/                  ← CONTROLLER layer (services)
-│       │   ├── SignalControllerService.java   (State pattern transitions)
-│       │   ├── TrafficControllerService.java  (Singleton, scheduler, WS broadcast)
+│       │   ├── SignalControllerService.java   (signal transitions)
+│       │   ├── TrafficControllerService.java  (Spring singleton, scheduler, WS broadcast)
 │       │   ├── DiagnosticsService.java        (read-only validation)
 │       │   └── SystemManagerService.java      (reset + diagnostics facade)
 │       └── controller/               ← Spring MVC REST controllers
@@ -137,12 +138,10 @@ npm start
 ## Design Patterns Used
 | Pattern   | Where                                      |
 |-----------|--------------------------------------------|
-| Singleton | `TrafficControllerService` (Spring `@Service`) |
-| Factory   | `JunctionNetworkFactory` creates the four-junction network |
-| Composite | `JunctionNetwork` contains intersections, intersections contain lights |
-| Strategy  | `SignalPlanStrategy` for automatic, manual, and priority behavior |
-| State     | `SignalState`, `CycleState`, `SignalMode`, `PriorityEventType`, `ManagerState` |
-| Adapter-like policy logic | `TimingProfile` and `TrafficDensity` convert real-world conditions into effective timer durations |
+| Factory   | `JunctionNetworkFactory` creates the seven-junction network |
+| Singleton | Spring `@Service` classes such as `TrafficControllerService` |
+| Facade    | `SystemManagerService` gives maintenance one simple API for diagnostics, status, reset, and fault simulation |
+| Command   | `TrafficCommand` classes wrap start, stop, manual, and priority actions |
 | MVC       | Model (`model/`), Controller (`service/` + `controller/`), View (React pages) |
 
 See `DESIGN_NOTES.md` for the full SOLID, GRASP, nested-state, and pattern explanation.

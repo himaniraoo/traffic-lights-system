@@ -54,16 +54,16 @@ The implementation now has nested state information:
 
 This gives a nested state model: system state contains controller cycle state; controller cycle state contains mode; priority mode contains event type.
 
-## Design patterns implemented
+## Syllabus design patterns implemented
 
 - Creational pattern - Factory:
-  - `JunctionNetworkFactory` creates the four-junction network in one place.
-- Structural pattern - Composite:
-  - `JunctionNetwork` contains multiple `Intersection` objects, and each `Intersection` contains multiple `TrafficLight` objects.
-- Behavioral pattern - Strategy:
-  - `SignalPlanStrategy` has automatic, manual, and priority implementations.
-- Additional pattern - State:
-  - `SignalState`, `CycleState`, `SignalMode`, `PriorityEventType`, and `ManagerState` represent explicit state transitions.
+  - `JunctionNetworkFactory` creates the seven-junction network in one place.
+- Creational pattern - Singleton:
+  - Spring `@Service` classes such as `TrafficControllerService`, `SignalControllerService`, `DiagnosticsService`, and `SystemManagerService` are singleton service objects by default.
+- Structural pattern - Facade:
+  - `SystemManagerService` gives maintenance features one simple interface for status, diagnostics, fault simulation, and reset.
+- Behavioral pattern - Command:
+  - `TrafficCommand` wraps operator actions such as start, stop, manual signal, and priority signal.
 
 ## SOLID principles
 
@@ -73,13 +73,13 @@ This gives a nested state model: system state contains controller cycle state; c
   - `JunctionNetwork` manages the group of junctions.
   - `DiagnosticsService` only validates system health.
 - Open/Closed Principle:
-  - New signal plans can be added by creating another `SignalPlanStrategy` implementation without rewriting controllers.
+  - New operator actions can be added by creating another `TrafficCommand` implementation without changing the existing command classes.
 - Liskov Substitution Principle:
-  - `AutomaticSignalPlanStrategy`, `ManualSignalPlanStrategy`, and `PrioritySignalPlanStrategy` can all be used through the same `SignalPlanStrategy` interface.
+  - `StartCycleCommand`, `StopCycleCommand`, `ManualSignalCommand`, and `PrioritySignalCommand` can all be used through the same `TrafficCommand` interface.
 - Interface Segregation Principle:
-  - Strategy classes depend on a small interface with only one operation: `apply`.
+  - Command classes depend on a small interface with only one operation: `execute`.
 - Dependency Inversion Principle:
-  - High-level control flow uses the `SignalPlanStrategy` abstraction rather than hard-coding every plan directly into the controller.
+  - Operator action flow uses the `TrafficCommand` abstraction instead of directly hard-coding every request as controller logic.
 
 ## GRASP principles
 
@@ -94,11 +94,11 @@ This gives a nested state model: system state contains controller cycle state; c
 - High Cohesion:
   - Classes are grouped by responsibility: model, controller, service, factory, and strategy.
 - Polymorphism:
-  - Signal behavior changes through strategy implementations.
+  - Operator actions execute through different `TrafficCommand` implementations.
 - Indirection:
   - REST controllers act as an interface between the UI and backend services.
 - Protected Variations:
-  - Manual, automatic, and priority behavior can evolve independently behind `SignalPlanStrategy`.
+  - Start, stop, manual, and priority operations can evolve independently behind `TrafficCommand`.
 
 ## Main files changed
 
@@ -109,6 +109,7 @@ This gives a nested state model: system state contains controller cycle state; c
 - `backend/src/main/java/com/traffic/model/TrafficDensityRequest.java`
 - `backend/src/main/java/com/traffic/model/TimingProfile.java`
 - `backend/src/main/java/com/traffic/factory/JunctionNetworkFactory.java`
+- `backend/src/main/java/com/traffic/command/*`
 - `backend/src/main/java/com/traffic/strategy/*`
 - `backend/src/main/java/com/traffic/service/TrafficControllerService.java`
 - `backend/src/main/java/com/traffic/service/SignalControllerService.java`
