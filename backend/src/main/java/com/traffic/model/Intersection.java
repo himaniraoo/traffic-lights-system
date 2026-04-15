@@ -14,25 +14,55 @@ public class Intersection {
 
     private final String id;
     private final String name;
+    private final JunctionType junctionType;
+    private final TrafficLoad trafficLoad;
+    private final String corridorRole;
+    private int vehicleCount;
+    private TrafficDensity trafficDensity;
     private final Map<Direction, TrafficLight> lights = new EnumMap<>(Direction.class);
 
     /**
      * Factory-style initialisation: creates one TrafficLight per Direction.
      */
     public Intersection() {
-        this("MAIN", "Central Junction");
+        this("MAIN", "Central Junction", JunctionType.FOUR_WAY, TrafficLoad.MEDIUM, "General traffic");
     }
 
     public Intersection(String id, String name) {
+        this(id, name, JunctionType.FOUR_WAY, TrafficLoad.MEDIUM, "General traffic");
+    }
+
+    public Intersection(String id, String name, JunctionType junctionType, TrafficLoad trafficLoad, String corridorRole) {
         this.id = id;
         this.name = name;
+        this.junctionType = junctionType;
+        this.trafficLoad = trafficLoad;
+        this.corridorRole = corridorRole;
+        this.vehicleCount = defaultVehicleCount(trafficLoad);
+        this.trafficDensity = TrafficDensity.fromVehicleCount(vehicleCount);
         for (Direction dir : Direction.values()) {
-            lights.put(dir, new TrafficLight(id, name, dir));
+            lights.put(dir, new TrafficLight(id, name, junctionType, trafficLoad, corridorRole, dir));
         }
+        syncTrafficDensityToLights();
     }
 
     public String getId() { return id; }
     public String getName() { return name; }
+    public JunctionType getJunctionType() { return junctionType; }
+    public TrafficLoad getTrafficLoad() { return trafficLoad; }
+    public String getCorridorRole() { return corridorRole; }
+    public int getVehicleCount() { return vehicleCount; }
+    public TrafficDensity getTrafficDensity() { return trafficDensity; }
+
+    public void updateVehicleCount(int vehicleCount) {
+        this.vehicleCount = Math.max(0, Math.min(vehicleCount, 120));
+        this.trafficDensity = TrafficDensity.fromVehicleCount(this.vehicleCount);
+        syncTrafficDensityToLights();
+    }
+
+    public void adjustVehicleCount(int delta) {
+        updateVehicleCount(vehicleCount + delta);
+    }
 
     public TrafficLight getLight(Direction direction) {
         return lights.get(direction);
@@ -62,5 +92,18 @@ public class Intersection {
     public void activateOnly(Direction direction, SignalState state) {
         resetAll();
         lights.get(direction).setState(state);
+    }
+
+    private void syncTrafficDensityToLights() {
+        lights.values().forEach(light -> light.updateTrafficDensity(vehicleCount, trafficDensity));
+    }
+
+    private int defaultVehicleCount(TrafficLoad trafficLoad) {
+        return switch (trafficLoad) {
+            case LOW -> 14;
+            case MEDIUM -> 30;
+            case HIGH -> 52;
+            case CRITICAL -> 78;
+        };
     }
 }

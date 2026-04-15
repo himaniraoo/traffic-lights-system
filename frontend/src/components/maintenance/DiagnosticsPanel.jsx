@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from 'react-bootstrap';
-import { runDiagnostics } from '../../services/api';
+import { runDiagnostics, simulateConflict } from '../../services/api';
 
 /**
  * DiagnosticsPanel - Triggers a full diagnostics check and shows results.
@@ -28,22 +28,48 @@ export default function DiagnosticsPanel({ onSuccess, onError }) {
     }
   };
 
+  const handleSimulateConflict = async () => {
+    setLoading(true);
+    try {
+      const res = await simulateConflict();
+      onError(res.data.message);
+      const diag = await runDiagnostics();
+      setResult(diag.data);
+    } catch {
+      onError('Failed to simulate diagnostic fault');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
-      <Button className="btn-diag btn mb-3" onClick={handleRun} disabled={loading}>
-        {loading ? 'Running…' : '▶  Run Diagnostics'}
-      </Button>
+      <div className="d-flex gap-2 flex-wrap mb-3">
+        <Button className="btn-diag btn" onClick={handleRun} disabled={loading}>
+          {loading ? 'Running...' : 'Run Diagnostics'}
+        </Button>
+        <Button className="btn-reset btn" onClick={handleSimulateConflict} disabled={loading}>
+          Simulate Conflict Fault
+        </Button>
+      </div>
 
       {result && (
         <div>
+          {result.checks?.length > 0 && (
+            <div className="mb-2">
+              {result.checks.map((check, i) => (
+                <div className="diag-check-item" key={i}>{check}</div>
+              ))}
+            </div>
+          )}
           {result.healthy ? (
             <div className="diag-ok-box">
-              ✓ All checks passed — no faults detected
+              All checks passed - no faults detected
             </div>
           ) : (
             <div>
               {result.errors.map((err, i) => (
-                <div className="diag-error-item" key={i}>⚠ {err}</div>
+                <div className="diag-error-item" key={i}>{err}</div>
               ))}
             </div>
           )}

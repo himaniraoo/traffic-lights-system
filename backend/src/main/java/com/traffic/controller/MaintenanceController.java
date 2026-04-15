@@ -34,6 +34,12 @@ public class MaintenanceController {
         return ResponseEntity.ok(Map.of("message", message));
     }
 
+    @PostMapping("/simulate-conflict")
+    public ResponseEntity<Map<String, String>> simulateConflictingGreenFault() {
+        String message = systemManagerService.simulateConflictingGreenFault();
+        return ResponseEntity.ok(Map.of("message", message));
+    }
+
     @GetMapping("/manager-state")
     public ResponseEntity<Map<String, String>> getManagerState() {
         return ResponseEntity.ok(Map.of("managerState", systemManagerService.getManagerState().name()));

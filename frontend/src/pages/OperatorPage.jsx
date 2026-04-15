@@ -10,6 +10,9 @@ import {
   getCycleState,
   getSignalMode,
   setSignalMode,
+  setAdaptiveTiming,
+  setDensitySimulation,
+  updateTrafficDensity,
   applyManualSignal,
   applyPriority,
 } from '../services/api';
@@ -32,6 +35,11 @@ export default function OperatorPage({ addToast }) {
   const [cycleState, setCycleState] = useState('IDLE');
   const [signalMode, setMode]       = useState('AUTOMATIC');
   const [priorityEvent, setPriorityEvent] = useState('NONE');
+  const [adaptiveTiming, setAdaptiveTimingState] = useState(true);
+  const [densitySimulation, setDensitySimulationState] = useState(true);
+  const [timingProfile, setTimingProfile] = useState('NORMAL');
+  const [timingProfileLabel, setTimingProfileLabel] = useState('Normal traffic');
+  const [densityEdit, setDensityEdit] = useState({ junctionId: 'J1', vehicleCount: 55 });
   const [manual, setManual] = useState({ junctionId: 'J1', direction: 'NORTH' });
   const [priority, setPriority] = useState({ eventType: 'AMBULANCE', junctionId: 'J1', direction: 'NORTH' });
   const [wsStatus,   setWsStatus]   = useState('disconnected');
@@ -42,6 +50,10 @@ export default function OperatorPage({ addToast }) {
       .then(r => {
         setMode(r.data.mode);
         setPriorityEvent(r.data.priorityEvent);
+        setTimingProfile(r.data.timingProfile);
+        setTimingProfileLabel(r.data.timingProfileLabel);
+        setAdaptiveTimingState(r.data.adaptiveTiming === 'true');
+        setDensitySimulationState(r.data.densitySimulation === 'true');
       })
       .catch(() => {});
     getCycleState().then(r => setCycleState(r.data.cycleState)).catch(() => {});
@@ -52,7 +64,14 @@ export default function OperatorPage({ addToast }) {
     getSignalStatus().then(r => setSignals(r.data)).catch(() => {});
     getCycleRunning().then(r => setRunning(r.data.running)).catch(() => {});
     getCycleState().then(r => setCycleState(r.data.cycleState)).catch(() => {});
-    getSignalMode().then(r => { setMode(r.data.mode); setPriorityEvent(r.data.priorityEvent); }).catch(() => {});
+    getSignalMode().then(r => {
+      setMode(r.data.mode);
+      setPriorityEvent(r.data.priorityEvent);
+      setTimingProfile(r.data.timingProfile);
+      setTimingProfileLabel(r.data.timingProfileLabel);
+      setAdaptiveTimingState(r.data.adaptiveTiming === 'true');
+      setDensitySimulationState(r.data.densitySimulation === 'true');
+    }).catch(() => {});
 
     connectWebSocket(
       (data) => { setSignals(data); },
@@ -70,6 +89,7 @@ export default function OperatorPage({ addToast }) {
       setCycleState('RUNNING');
       setMode('AUTOMATIC');
       setPriorityEvent('NONE');
+      refreshModeState();
       addToast(res.data.message, 'success');
     } catch (e) {
       addToast(e.response?.data?.message || 'Failed to start', 'error');
@@ -112,6 +132,44 @@ export default function OperatorPage({ addToast }) {
     } finally { setLoading(''); }
   };
 
+  const handleAdaptiveToggle = async (enabled) => {
+    setLoading('adaptive');
+    try {
+      const res = await setAdaptiveTiming(enabled);
+      addToast(res.data.message, 'success');
+      refreshModeState();
+    } catch (e) {
+      addToast(e.response?.data?.message || 'Failed to update adaptive timing', 'error');
+    } finally { setLoading(''); }
+  };
+
+  const handleDensitySimulationToggle = async (enabled) => {
+    setLoading('density-simulation');
+    try {
+      const res = await setDensitySimulation(enabled);
+      addToast(res.data.message, 'success');
+      refreshModeState();
+    } catch (e) {
+      addToast(e.response?.data?.message || 'Failed to update density simulation', 'error');
+    } finally { setLoading(''); }
+  };
+
+  const handleDensityApply = async () => {
+    setLoading('density');
+    try {
+      const res = await updateTrafficDensity({
+        ...densityEdit,
+        vehicleCount: Number(densityEdit.vehicleCount),
+      });
+      addToast(res.data.message, 'success');
+      setDensitySimulationState(false);
+      getSignalStatus().then(r => setSignals(r.data)).catch(() => {});
+      refreshModeState();
+    } catch (e) {
+      addToast(e.response?.data?.message || 'Failed to update traffic density', 'error');
+    } finally { setLoading(''); }
+  };
+
   const handlePriorityApply = async () => {
     setLoading('priority');
     try {
@@ -137,6 +195,12 @@ export default function OperatorPage({ addToast }) {
   const junctions = Object.values((signals || []).reduce((acc, signal) => {
     const key = signal.junctionId || 'J1';
     if (!acc[key]) acc[key] = { id: key, name: signal.junctionName || key, lights: [] };
+    acc[key].junctionType = signal.junctionType;
+    acc[key].trafficLoad = signal.trafficLoad;
+    acc[key].corridorRole = signal.corridorRole;
+    acc[key].vehicleCount = signal.vehicleCount;
+    acc[key].trafficDensity = signal.trafficDensity;
+    acc[key].trafficDensityLabel = signal.trafficDensityLabel;
     acc[key].lights.push(signal);
     return acc;
   }, {}));
@@ -174,6 +238,9 @@ export default function OperatorPage({ addToast }) {
         <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
           TrafficController state | Mode: {signalMode} | Priority: {priorityEvent}
         </span>
+        <span className="mini-chip">
+          {adaptiveTiming ? 'Adaptive timing' : 'Manual timing'}: {timingProfileLabel || timingProfile}
+        </span>
       </div>
 
       <Row className="g-3 mb-4">
@@ -181,8 +248,23 @@ export default function OperatorPage({ addToast }) {
           <Col lg={6} key={junction.id}>
             <div className="dark-card h-100">
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <div className="section-title mb-0">{junction.name}</div>
-                <span className="mini-chip">{junction.id}</span>
+                <div>
+                  <div className="section-title mb-1">{junction.name}</div>
+                  <div className="junction-meta">{junction.junctionType} | {junction.corridorRole}</div>
+                </div>
+                <div className="d-flex gap-2 flex-wrap justify-content-end">
+                  <span className="mini-chip">{junction.id}</span>
+                  <span className={`load-chip load-${(junction.trafficLoad || 'MEDIUM').toLowerCase()}`}>{junction.trafficLoad}</span>
+                </div>
+              </div>
+              <div className="density-strip mb-3">
+                <div>
+                  <span className="density-value">{junction.vehicleCount}</span>
+                  <span className="density-unit"> vehicles</span>
+                </div>
+                <span className={`density-pill density-${(junction.trafficDensity || 'MODERATE').toLowerCase()}`}>
+                  {junction.trafficDensityLabel || junction.trafficDensity}
+                </span>
               </div>
               <Row className="g-2">
                 {DIRECTIONS.map(dir => {
@@ -268,9 +350,69 @@ export default function OperatorPage({ addToast }) {
         </Col>
       </Row>
 
+      <div className="dark-card mb-4">
+        <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
+          <div>
+            <div className="section-title mb-1">Peak-Hour Adaptive Timing</div>
+            <div className="junction-meta">
+              Active profile: {timingProfileLabel || timingProfile}. High-load junctions receive longer GREEN phases.
+            </div>
+          </div>
+          <Form.Check
+            type="switch"
+            id="adaptive-timing-switch"
+            label={adaptiveTiming ? 'Adaptive ON' : 'Adaptive OFF'}
+            checked={adaptiveTiming}
+            disabled={loading === 'adaptive'}
+            onChange={e => handleAdaptiveToggle(e.target.checked)}
+            className="adaptive-switch"
+          />
+        </div>
+        <div className="divider" />
+        <Row className="g-2 align-items-end">
+          <Col md={4}>
+            <Form.Label className="dark-label">Density junction</Form.Label>
+            <Form.Select
+              className="dark-input"
+              value={densityEdit.junctionId}
+              onChange={e => setDensityEdit({ ...densityEdit, junctionId: e.target.value })}
+            >
+              {junctions.map(j => <option key={j.id} value={j.id}>{j.name}</option>)}
+            </Form.Select>
+          </Col>
+          <Col md={3}>
+            <Form.Label className="dark-label">Vehicles waiting</Form.Label>
+            <Form.Control
+              className="dark-input"
+              type="number"
+              min={0}
+              max={120}
+              value={densityEdit.vehicleCount}
+              onChange={e => setDensityEdit({ ...densityEdit, vehicleCount: e.target.value })}
+            />
+          </Col>
+          <Col md={2}>
+            <Button className="btn-start btn w-100" onClick={handleDensityApply} disabled={loading === 'density'}>
+              Apply
+            </Button>
+          </Col>
+          <Col md={3}>
+            <Form.Check
+              type="switch"
+              id="density-simulation-switch"
+              label={densitySimulation ? 'Density simulation ON' : 'Manual density'}
+              checked={densitySimulation}
+              disabled={loading === 'density-simulation'}
+              onChange={e => handleDensitySimulationToggle(e.target.checked)}
+              className="adaptive-switch"
+            />
+          </Col>
+        </Row>
+      </div>
+
       {/* Timing Config */}
       <div className="dark-card">
-        <div className="section-title">Signal Timing Configuration</div>
+        <div className="section-title">Base Signal Timing Configuration</div>
         <TimingConfigForm
           onSuccess={msg => { addToast(msg, 'success'); setCycleState('UPDATING'); setTimeout(() => getCycleState().then(r => setCycleState(r.data.cycleState)).catch(() => {}), 600); }}
           onError={msg   => addToast(msg, 'error')}

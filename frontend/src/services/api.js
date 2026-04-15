@@ -13,6 +13,9 @@ export const getCycleRunning   = ()      => api.get('/signals/running');
 export const getCycleState     = ()      => api.get('/signals/state');
 export const getSignalMode     = ()      => api.get('/signals/mode');
 export const setSignalMode     = (mode)  => api.post(`/signals/mode/${mode}`);
+export const setAdaptiveTiming = (enabled) => api.post(`/signals/adaptive-timing/${enabled}`);
+export const setDensitySimulation = (enabled) => api.post(`/signals/density-simulation/${enabled}`);
+export const updateTrafficDensity = (data) => api.post('/signals/traffic-density', data);
 export const applyManualSignal = (data)  => api.post('/signals/manual', data);
 export const applyPriority     = (data)  => api.post('/signals/priority', data);
 export const getTimerConfig    = ()      => api.get('/signals/timer');
@@ -22,6 +25,7 @@ export const updateTimerConfig = (data)  => api.put('/signals/timer', data);
 export const getSystemStatus   = ()      => api.get('/maintenance/status');
 export const runDiagnostics    = ()      => api.post('/maintenance/diagnostics');
 export const resetSystem       = ()      => api.post('/maintenance/reset');
+export const simulateConflict  = ()      => api.post('/maintenance/simulate-conflict');
 export const getManagerState   = ()      => api.get('/maintenance/manager-state');
 
 export default api;

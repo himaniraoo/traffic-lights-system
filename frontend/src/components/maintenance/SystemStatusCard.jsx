@@ -48,7 +48,21 @@ export default function SystemStatusCard() {
     <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Loading status…</div>
   );
 
-  const { cycleRunning, cycleState, managerState, signalMode, priorityEvent, timerConfig, activeLights, junctionCount } = status;
+  const {
+    cycleRunning,
+    cycleState,
+    managerState,
+    signalMode,
+    priorityEvent,
+    adaptiveTimingEnabled,
+    densitySimulationEnabled,
+    activeTimingProfileLabel,
+    timerConfig,
+    effectiveTimerConfig,
+    activeLights,
+    junctionCount,
+  } = status;
+  const displayedTimerConfig = effectiveTimerConfig || timerConfig;
 
   return (
     <Row className="g-3">
@@ -71,14 +85,14 @@ export default function SystemStatusCard() {
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{junctionCount || 1} junctions</div>
         </div>
       </Col>
-      {timerConfig && (
+      {displayedTimerConfig && (
         <Col xs={6} md={3}>
           <div className="dark-card" style={{ padding: '1rem' }}>
-            <div className="section-title">Timings</div>
+            <div className="section-title">Effective Timings</div>
             {[
-              { label: 'Green',  val: timerConfig.greenDuration,  color: '#30D158' },
-              { label: 'Yellow', val: timerConfig.yellowDuration, color: '#FFD60A' },
-              { label: 'Red',    val: timerConfig.redDuration,    color: '#FF3B30' },
+              { label: 'Green',  val: displayedTimerConfig.greenDuration,  color: '#30D158' },
+              { label: 'Yellow', val: displayedTimerConfig.yellowDuration, color: '#FFD60A' },
+              { label: 'Red',    val: displayedTimerConfig.redDuration,    color: '#FF3B30' },
             ].map(item => (
               <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                 <span style={{ fontSize: '0.75rem', color: item.color, fontWeight: 600 }}>{item.label}</span>
@@ -93,6 +107,18 @@ export default function SystemStatusCard() {
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Priority</span>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-primary)' }}>{priorityEvent}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Timing</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-primary)' }}>
+                {adaptiveTimingEnabled ? activeTimingProfileLabel : 'Manual'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Density</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-primary)' }}>
+                {densitySimulationEnabled ? 'Simulated' : 'Manual'}
+              </span>
             </div>
           </div>
         </Col>

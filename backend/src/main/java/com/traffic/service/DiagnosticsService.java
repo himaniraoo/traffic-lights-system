@@ -33,11 +33,14 @@ public class DiagnosticsService {
         network.getIntersections().forEach(intersection -> {
             checkForConflictingGreens(intersection, result);
             checkForNullStates(intersection, result);
+            checkTrafficDensity(intersection, result);
         });
         checkTimerConfig(config, result);
 
-        if (network.size() < 4) {
-            result.addError("Network must contain at least four junctions for the multi-junction case.");
+        if (network.size() < 6) {
+            result.addError("Network must contain at least six varied junctions for the expanded multi-junction case.");
+        } else {
+            result.addCheck("Network variety check passed: " + network.size() + " junctions configured");
         }
 
         if (result.isHealthy()) {
@@ -61,26 +64,57 @@ public class DiagnosticsService {
                 dirs.append(greens.get(i).getDirection().getLabel());
             }
             result.addError("Conflicting GREEN signals at " + intersection.getName() + ": " + dirs);
+        } else {
+            result.addCheck(intersection.getName() + ": green conflict check passed (" + greens.size() + " green signal)");
         }
     }
 
     private void checkForNullStates(Intersection intersection, DiagnosticsResult result) {
+        boolean hasNullState = false;
         intersection.getAllLights().forEach((dir, light) -> {
             if (light.getCurrentState() == null) {
                 result.addError("NULL state detected for direction: " + dir.getLabel());
             }
         });
+        for (TrafficLight light : intersection.getAllLights().values()) {
+            if (light.getCurrentState() == null) {
+                hasNullState = true;
+                break;
+            }
+        }
+        if (!hasNullState) {
+            result.addCheck(intersection.getName() + ": all signal states are valid");
+        }
     }
 
     private void checkTimerConfig(TimerConfig config, DiagnosticsResult result) {
+        boolean timerOk = true;
         if (config.getGreenDuration() < 1000) {
             result.addError("Green duration too short (min 1000ms): " + config.getGreenDuration());
+            timerOk = false;
         }
         if (config.getYellowDuration() < 500) {
             result.addError("Yellow duration too short (min 500ms): " + config.getYellowDuration());
+            timerOk = false;
         }
         if (config.getRedDuration() < 1000) {
             result.addError("Red duration too short (min 1000ms): " + config.getRedDuration());
+            timerOk = false;
         }
+        if (timerOk) {
+            result.addCheck("Timer configuration valid: green=" + config.getGreenDuration()
+                + "ms, yellow=" + config.getYellowDuration()
+                + "ms, red=" + config.getRedDuration() + "ms");
+        }
+    }
+
+    private void checkTrafficDensity(Intersection intersection, DiagnosticsResult result) {
+        if (intersection.getVehicleCount() < 0 || intersection.getVehicleCount() > 120) {
+            result.addError("Invalid vehicle count at " + intersection.getName() + ": " + intersection.getVehicleCount());
+            return;
+        }
+        result.addCheck(intersection.getName() + ": density check passed ("
+            + intersection.getVehicleCount() + " vehicles, "
+            + intersection.getTrafficDensity().getLabel() + ")");
     }
 }

@@ -50,6 +50,13 @@ public class SystemManagerService {
         return "System reset to defaults. All lights are RED. Timings restored.";
     }
 
+    public String simulateConflictingGreenFault() {
+        String message = trafficController.simulateConflictingGreenFault();
+        managerState = ManagerState.FAULT;
+        log.warning("ManagerState -> FAULT: simulated conflicting green fault");
+        return message;
+    }
+
     // ── Diagnostics: if errors found, transition to FAULT ─────────────────────
 
     public DiagnosticsResult runDiagnostics() {
@@ -72,7 +79,12 @@ public class SystemManagerService {
             managerState.name(),
             trafficController.getSignalMode().name(),
             trafficController.getPriorityEventType().name(),
+            trafficController.isAdaptiveTimingEnabled(),
+            trafficController.isDensitySimulationEnabled(),
+            trafficController.getActiveTimingProfile().name(),
+            trafficController.getActiveTimingProfile().getLabel(),
             trafficController.getTimerConfig(),
+            trafficController.getEffectiveTimerConfig(),
             trafficController.getNetwork().size(),
             trafficController.getCurrentStatus().size()
         );
@@ -86,7 +98,12 @@ public class SystemManagerService {
         String      managerState,
         String      signalMode,
         String      priorityEvent,
+        boolean     adaptiveTimingEnabled,
+        boolean     densitySimulationEnabled,
+        String      activeTimingProfile,
+        String      activeTimingProfileLabel,
         TimerConfig timerConfig,
+        TimerConfig effectiveTimerConfig,
         int         junctionCount,
         int         activeLights
     ) {}

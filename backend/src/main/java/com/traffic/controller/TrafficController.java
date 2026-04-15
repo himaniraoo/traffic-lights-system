@@ -72,7 +72,11 @@ public class TrafficController {
     public ResponseEntity<Map<String, String>> getSignalMode() {
         return ResponseEntity.ok(Map.of(
             "mode", trafficControllerService.getSignalMode().name(),
-            "priorityEvent", trafficControllerService.getPriorityEventType().name()
+            "priorityEvent", trafficControllerService.getPriorityEventType().name(),
+            "timingProfile", trafficControllerService.getActiveTimingProfile().name(),
+            "timingProfileLabel", trafficControllerService.getActiveTimingProfile().getLabel(),
+            "adaptiveTiming", Boolean.toString(trafficControllerService.isAdaptiveTimingEnabled()),
+            "densitySimulation", Boolean.toString(trafficControllerService.isDensitySimulationEnabled())
         ));
     }
 
@@ -80,6 +84,31 @@ public class TrafficController {
     public ResponseEntity<Map<String, String>> setSignalMode(@PathVariable SignalMode mode) {
         String message = trafficControllerService.setSignalMode(mode);
         return ResponseEntity.ok(Map.of("message", message, "mode", mode.name()));
+    }
+
+    @PostMapping("/adaptive-timing/{enabled}")
+    public ResponseEntity<Map<String, String>> setAdaptiveTiming(@PathVariable boolean enabled) {
+        String message = trafficControllerService.setAdaptiveTimingEnabled(enabled);
+        return ResponseEntity.ok(Map.of(
+            "message", message,
+            "adaptiveTiming", Boolean.toString(enabled),
+            "timingProfile", trafficControllerService.getActiveTimingProfile().name()
+        ));
+    }
+
+    @PostMapping("/density-simulation/{enabled}")
+    public ResponseEntity<Map<String, String>> setDensitySimulation(@PathVariable boolean enabled) {
+        String message = trafficControllerService.setDensitySimulationEnabled(enabled);
+        return ResponseEntity.ok(Map.of(
+            "message", message,
+            "densitySimulation", Boolean.toString(enabled)
+        ));
+    }
+
+    @PostMapping("/traffic-density")
+    public ResponseEntity<Map<String, String>> updateTrafficDensity(@RequestBody TrafficDensityRequest request) {
+        String message = trafficControllerService.updateTrafficDensity(request);
+        return ResponseEntity.ok(Map.of("message", message));
     }
 
     @PostMapping("/manual")

@@ -2,7 +2,7 @@
 
 Full-stack project - Spring Boot (Java 17) backend + React frontend.
 
-The system now manages a four-junction urban signal network inspired by a South End Bangalore junction layout. It supports automatic timed cycling, manual operator control, and emergency/rally priority handling.
+The system now manages a seven-junction urban signal network inspired by a South End Bangalore junction layout. It supports automatic timed cycling, peak-hour adaptive timing, traffic-density based green-time adjustment, manual operator control, and emergency/rally priority handling.
 
 ---
 
@@ -24,6 +24,11 @@ traffic-system/
 │       │   ├── TrafficLight.java      (one light + inner DTO)
 │       │   ├── Intersection.java      (groups 4 directional lights)
 │       │   ├── JunctionNetwork.java   (groups multiple intersections)
+│       │   ├── JunctionType.java      (roundabout, school zone, bus corridor, etc.)
+│       │   ├── TrafficLoad.java       (LOW, MEDIUM, HIGH, CRITICAL)
+│       │   ├── TrafficDensity.java    (LIGHT, MODERATE, HEAVY, JAMMED)
+│       │   ├── TrafficDensityRequest.java
+│       │   ├── TimingProfile.java     (normal and peak-hour timing profiles)
 │       │   ├── SignalMode.java        (AUTOMATIC, MANUAL)
 │       │   ├── PriorityEventType.java (NONE, AMBULANCE, RALLY)
 │       │   ├── ManualSignalRequest.java
@@ -83,6 +88,9 @@ traffic-system/
 | GET    | `/api/signals/running`| Is the cycle currently running |
 | GET    | `/api/signals/mode`   | Get automatic/manual/priority state |
 | POST   | `/api/signals/mode/{mode}` | Switch `AUTOMATIC` or `MANUAL` |
+| POST   | `/api/signals/adaptive-timing/{enabled}` | Enable or disable peak-hour adaptive timing |
+| POST   | `/api/signals/density-simulation/{enabled}` | Enable or disable simulated vehicle counts |
+| POST   | `/api/signals/traffic-density` | Manually set vehicle count for one junction |
 | POST   | `/api/signals/manual` | Manually set one junction direction GREEN |
 | POST   | `/api/signals/priority` | Activate or clear ambulance/rally priority |
 
@@ -91,6 +99,7 @@ traffic-system/
 |--------|--------------------------------|--------------------------|
 | GET    | `/api/maintenance/status`      | System status summary    |
 | POST   | `/api/maintenance/diagnostics` | Run diagnostics check    |
+| POST   | `/api/maintenance/simulate-conflict` | Create a controlled overlapping-green fault for demo/testing |
 | POST   | `/api/maintenance/reset`       | Reset to factory defaults|
 
 ### WebSocket
@@ -133,6 +142,7 @@ npm start
 | Composite | `JunctionNetwork` contains intersections, intersections contain lights |
 | Strategy  | `SignalPlanStrategy` for automatic, manual, and priority behavior |
 | State     | `SignalState`, `CycleState`, `SignalMode`, `PriorityEventType`, `ManagerState` |
+| Adapter-like policy logic | `TimingProfile` and `TrafficDensity` convert real-world conditions into effective timer durations |
 | MVC       | Model (`model/`), Controller (`service/` + `controller/`), View (React pages) |
 
 See `DESIGN_NOTES.md` for the full SOLID, GRASP, nested-state, and pattern explanation.
